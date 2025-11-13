@@ -2,6 +2,7 @@
   "name": "server",
   "type": "module",
   "scripts": {
+    "migrate": "bunx drizzle-kit migrate",
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js"
