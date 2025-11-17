@@ -1,6 +1,8 @@
 CREATE TABLE `users` (
-	`id` serial AUTO_INCREMENT NOT NULL,
-	`name` varchar(255),
-	`age` int,
-	CONSTRAINT `users_id` PRIMARY KEY(`id`)
+	`id` varchar(36) NOT NULL,
+	`email` varchar(255) NOT NULL,
+	`password` varchar(255) NOT NULL,
+	`created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	CONSTRAINT `users_id` PRIMARY KEY(`id`),
+	CONSTRAINT `users_email_unique` UNIQUE(`email`)
 );

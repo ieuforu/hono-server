@@ -1,7 +1,11 @@
-import { mysqlTable, serial, varchar, int } from 'drizzle-orm/mysql-core'
+import { sql } from 'drizzle-orm'
+import { mysqlTable, varchar, datetime } from 'drizzle-orm/mysql-core'
 
 export const users = mysqlTable('users', {
-  id: serial('id').primaryKey(),
-  name: varchar('name', { length: 255 }),
-  age: int('age'),
+  id: varchar('id', { length: 36 }).primaryKey(),
+  email: varchar('email', { length: 255 }).notNull().unique(),
+  password: varchar('password', { length: 255 }).notNull(),
+  createdAt: datetime('created_at')
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
 })
