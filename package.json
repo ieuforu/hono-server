@@ -3,12 +3,11 @@
   "type": "module",
   "scripts": {
     "migrate": "bunx drizzle-kit migrate",
-    "dev": "tsx watch src/index.ts",
+    "dev": "bun run --hot src/index.ts",
     "build": "tsc",
-    "start": "node dist/index.js"
+    "start": "bun run src/index.ts"
   },
   "dependencies": {
-    "@hono/node-server": "^1.19.6",
     "dotenv": "^17.2.3",
     "drizzle-orm": "^0.44.7",
     "hono": "^4.10.5",
