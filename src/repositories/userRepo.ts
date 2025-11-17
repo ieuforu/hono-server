@@ -19,6 +19,7 @@ export const userRepo = {
   },
 
   async createUser(email: string, password: string) {
+    console.log('📧 createUser called with:', { email, password }) // 👈 关键！
     const id = uuidv4()
     const result = await db.insert(users).values({
       id,

@@ -2,13 +2,16 @@ import { userService } from '../services/userService.js'
 
 export const userController = {
   register: async (c: any) => {
-    const { email, password } = await c.req.json()
+    const body = await c.req.json()
+    const { email, password } = body
+    console.log(email, password)
     try {
       const user = await userService.register(email, password)
       return c.json({ ok: true, user }, 201)
     } catch (err: any) {
       if (err.message === 'EMAIL_EXISTS')
         return c.json({ error: 'Email exists' }, 409)
+      console.log(err)
       return c.json({ error: 'Server error' }, 500)
     }
   },
@@ -16,7 +19,6 @@ export const userController = {
   login: async (c: any) => {
     const { email, password } = await c.req.json()
     try {
-      // ✅ 现在 userService.login 内部用 Hono JWT sign
       const result = await userService.login(email, password)
       return c.json(result)
     } catch (err: any) {

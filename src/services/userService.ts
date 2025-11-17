@@ -15,9 +15,11 @@ export const userService = {
 
   async login(email: string, password: string) {
     const user = await userRepo.findByEmail(email)
+    console.log('🔍 findByEmail result:', user ? 'found' : 'null')
     if (!user) throw new Error('INVALID_CREDENTIALS')
 
     const valid = await comparePassword(password, user.password)
+    console.log('🔑 compare result:', valid)
     if (!valid) throw new Error('INVALID_CREDENTIALS')
 
     const token = await sign({ sub: user.id, email: user.email }, SECRET)
