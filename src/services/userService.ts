@@ -10,23 +10,23 @@ export const userService = {
     if (exists) throw new Error('EMAIL_EXISTS')
 
     const hashed = await hashPassword(password)
-    return await userRepo.createUser(email, hashed)
+    await userRepo.createUser(email, hashed)
   },
 
   async login(email: string, password: string) {
     // token 3天过期
     const exp = Math.floor(Date.now() / 1000) + 3 * 24 * 60 * 60
     const user = await userRepo.findByEmail(email)
-    console.log('🔍 findByEmail result:', user ? 'found' : 'null')
+
     if (!user) throw new Error('INVALID_CREDENTIALS')
 
     const valid = await comparePassword(password, user.password)
-    console.log('🔑 compare result:', valid)
+
     if (!valid) throw new Error('INVALID_CREDENTIALS')
 
     const token = await sign({ sub: user.id, email: user.email, exp }, SECRET)
 
-    return { token, user: { id: user.id, email: user.email } }
+    return { token }
   },
 
   async getAllUsers() {

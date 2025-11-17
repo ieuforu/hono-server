@@ -19,15 +19,13 @@ export const userRepo = {
   },
 
   async createUser(email: string, password: string) {
-    console.log('📧 createUser called with:', { email, password }) // 👈 关键！
     const id = uuidv4()
-    const result = await db.insert(users).values({
+    await db.insert(users).values({
       id,
       email,
       password,
       // createdAt 会用 CURRENT_TIMESTAMP
     })
-    return { id, email }
   },
 
   async updateUser(id: string, email?: string, password?: string) {

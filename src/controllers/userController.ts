@@ -4,10 +4,10 @@ export const userController = {
   register: async (c: any) => {
     const body = await c.req.json()
     const { email, password } = body
-    console.log(email, password)
+
     try {
-      const user = await userService.register(email, password)
-      return c.json({ ok: true, user }, 201)
+      await userService.register(email, password)
+      return c.json({ ok: true, msg: 'success' }, 201)
     } catch (err: any) {
       if (err.message === 'EMAIL_EXISTS')
         return c.json({ error: 'Email exists' }, 409)
