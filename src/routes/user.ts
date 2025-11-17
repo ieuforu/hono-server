@@ -3,9 +3,9 @@ import { userController } from '../controllers/userController.js'
 
 export const userRouter = new Hono()
 
-userRouter.post('/register', userController.register)
-userRouter.post('/login', userController.login)
-userRouter.get('/', userController.getAll)
-userRouter.get('/:id', userController.getById)
-userRouter.put('/:id', userController.update)
-userRouter.delete('/:id', userController.delete)
+  .post('/register', userController.register)
+  .post('/login', userController.login)
+  .get('/', userController.getAll)
+  .get('/:id', userController.getById)
+  .put('/:id', userController.update)
+  .delete('/:id', userController.delete)
