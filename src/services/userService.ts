@@ -30,11 +30,17 @@ export const userService = {
   },
 
   async getAllUsers() {
-    return await userRepo.findAll()
+    // return await userRepo.findAll()
+    const users = await userRepo.findAll()
+    return users.map(({ password, ...safeUser }) => safeUser)
   },
 
   async getUserById(id: string) {
-    return await userRepo.findById(id)
+    // return await userRepo.findById(id)
+    const user = await userRepo.findById(id)
+    if (!user) return null
+    const { password, ...safeUser } = user
+    return safeUser
   },
 
   async updateUser(id: string, email?: string, password?: string) {
