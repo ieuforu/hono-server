@@ -5,17 +5,13 @@ function validateEmail(email: any): email is string {
   return typeof email === 'string' && email.includes('@')
 }
 
-function validatePassword(password: any): password is string {
-  return typeof password === 'string' && password.length >= 6
-}
-
 export const userController = {
   register: async (c: Context) => {
     try {
       const body = await c.req.json()
       const { email, password } = body
 
-      if (!validateEmail(email) || !validatePassword(password)) {
+      if (!validateEmail(email)) {
         return c.json({ message: 'Invalid input' }, 400)
       }
 
@@ -33,7 +29,7 @@ export const userController = {
     try {
       const { email, password } = await c.req.json()
 
-      if (!validateEmail(email) || !validatePassword(password)) {
+      if (!validateEmail(email)) {
         return c.json({ message: 'Invalid input' }, 400)
       }
 
@@ -82,9 +78,6 @@ export const userController = {
         patch.email = body.email
       }
       if (body.password !== undefined) {
-        if (!validatePassword(body.password)) {
-          return c.json({ message: 'Invalid password' }, 400)
-        }
         patch.password = body.password
       }
 
