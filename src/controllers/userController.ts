@@ -10,9 +10,8 @@ export const userController = {
       return c.json({ ok: true, msg: 'success' }, 201)
     } catch (err: any) {
       if (err.message === 'EMAIL_EXISTS')
-        return c.json({ error: 'Email exists' }, 409)
-      console.log(err)
-      return c.json({ error: 'Server error' }, 500)
+        return c.json({ message: '该邮箱已注册' }, 409)
+      return c.json({ message: '服务器出错了' }, 500)
     }
   },
 
@@ -23,8 +22,8 @@ export const userController = {
       return c.json(result)
     } catch (err: any) {
       if (err.message === 'INVALID_CREDENTIALS')
-        return c.json({ error: 'Invalid credentials' }, 401)
-      return c.json({ error: 'Server error' }, 500)
+        return c.json({ message: '账号或密码错误' }, 401)
+      return c.json({ message: '服务器出错' }, 500)
     }
   },
 
@@ -36,7 +35,7 @@ export const userController = {
   getById: async (c: any) => {
     const { id } = c.req.param()
     const user = await userService.getUserById(id)
-    if (!user) return c.json({ error: 'Not found' }, 404)
+    if (!user) return c.json({ message: 'Not found' }, 404)
     return c.json(user)
   },
 
