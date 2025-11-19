@@ -1,54 +1,107 @@
 import { userService } from '../services/userService.js'
+import type { Context } from 'hono'
+
+function validateEmail(email: any): email is string {
+  return typeof email === 'string' && email.includes('@')
+}
+
+function validatePassword(password: any): password is string {
+  return typeof password === 'string' && password.length >= 6
+}
 
 export const userController = {
-  register: async (c: any) => {
-    const body = await c.req.json()
-    const { email, password } = body
-
+  register: async (c: Context) => {
     try {
+      const body = await c.req.json()
+      const { email, password } = body
+
+      if (!validateEmail(email) || !validatePassword(password)) {
+        return c.json({ message: 'Invalid input' }, 400)
+      }
+
       await userService.register(email, password)
       return c.json({ ok: true, msg: 'success' }, 201)
     } catch (err: any) {
-      if (err.message === 'EMAIL_EXISTS')
+      if (err.code === 'EMAIL_EXISTS') {
         return c.json({ message: '该邮箱已注册' }, 409)
+      }
       return c.json({ message: '服务器出错了' }, 500)
     }
   },
 
-  login: async (c: any) => {
-    const { email, password } = await c.req.json()
+  login: async (c: Context) => {
     try {
+      const { email, password } = await c.req.json()
+
+      if (!validateEmail(email) || !validatePassword(password)) {
+        return c.json({ message: 'Invalid input' }, 400)
+      }
+
       const result = await userService.login(email, password)
       return c.json(result)
     } catch (err: any) {
-      if (err.message === 'INVALID_CREDENTIALS')
+      if (err.code === 'INVALID_CREDENTIALS') {
         return c.json({ message: '账号或密码错误' }, 401)
+      }
       return c.json({ message: '服务器出错' }, 500)
     }
   },
 
-  getAll: async (c: any) => {
-    const users = await userService.getAllUsers()
-    return c.json(users)
+  getAll: async (c: Context) => {
+    try {
+      const users = await userService.getAllUsers()
+      return c.json(users)
+    } catch (err) {
+      return c.json({ message: '服务器出错' }, 500)
+    }
   },
 
-  getById: async (c: any) => {
-    const { id } = c.req.param()
-    const user = await userService.getUserById(id)
-    if (!user) return c.json({ message: 'Not found' }, 404)
-    return c.json(user)
+  getById: async (c: Context) => {
+    try {
+      const id = c.req.param('id')
+      const user = await userService.getUserById(id)
+
+      if (!user) return c.json({ message: 'Not found' }, 404)
+      return c.json(user)
+    } catch {
+      return c.json({ message: '服务器出错' }, 500)
+    }
   },
 
-  update: async (c: any) => {
-    const { id } = c.req.param()
-    const { email, password } = await c.req.json()
-    const user = await userService.updateUser(id, email, password)
-    return c.json(user)
+  update: async (c: Context) => {
+    try {
+      const id = c.req.param('id')
+      const body = await c.req.json()
+
+      // 仅更新存在的字段
+      const patch: any = {}
+      if (body.email !== undefined) {
+        if (!validateEmail(body.email)) {
+          return c.json({ message: 'Invalid email' }, 400)
+        }
+        patch.email = body.email
+      }
+      if (body.password !== undefined) {
+        if (!validatePassword(body.password)) {
+          return c.json({ message: 'Invalid password' }, 400)
+        }
+        patch.password = body.password
+      }
+
+      const updated = await userService.updateUser(id, patch)
+      return c.json(updated)
+    } catch {
+      return c.json({ message: '服务器出错' }, 500)
+    }
   },
 
-  delete: async (c: any) => {
-    const { id } = c.req.param()
-    await userService.deleteUser(id)
-    return c.json({ ok: true })
+  delete: async (c: Context) => {
+    try {
+      const id = c.req.param('id')
+      await userService.deleteUser(id)
+      return c.json({ ok: true })
+    } catch {
+      return c.json({ message: '服务器出错' }, 500)
+    }
   },
 }
