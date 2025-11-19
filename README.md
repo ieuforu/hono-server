@@ -23,3 +23,19 @@ bunx drizzle-kit migrate
 ```
 
 或者直接运行 package.json 配置好的脚本：`bun migrate`
+
+# 测试文件
+
+```shell
+$ bun test src/userService.test.ts
+```
+
+```shell
+
+$ bun test src/userRepo.test.ts
+
+```
+
+```
+
+```
