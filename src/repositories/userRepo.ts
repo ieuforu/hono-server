@@ -66,22 +66,16 @@ export const userRepo = {
     email: string,
     password: string
   ): Promise<{ id: string; email: string } | null> {
-    try {
-      await db.insert(users).values({ email, password })
-      const newUser = await this.findByEmail(email)
-
-      if (newUser) {
-        return { id: newUser.id, email: newUser.email }
-      }
-
-      throw { code: 'DB_CREATE_USER_FAIL' }
-    } catch (err: any) {
-      if (err.code === 'DB_CREATE_USER_FAIL') {
-        throw { code: 'DB_CREATE_USER_FAIL' }
-      }
-
-      throw { code: 'DB_ERROR' }
+    const existing = await this.findByEmail(email)
+    if (existing) {
+      throw { code: 'DB_EMAIL_ALREADY_EXISTS' }
     }
+
+    await db.insert(users).values({ email, password })
+    const newUser = await this.findByEmail(email)
+    if (!newUser) throw { code: 'DB_ERROR' }
+
+    return { id: newUser.id, email: newUser.email }
   },
 
   async updateUser(
@@ -90,23 +84,24 @@ export const userRepo = {
     password?: string
   ): Promise<SafeUser | null> {
     const updates: Partial<FullUser> = {}
-    if (email) updates.email = email
     if (password) updates.password = password
-    if (Object.keys(updates).length === 0) return await this.findById(id)
 
-    try {
-      const updateResult = await db
-        .update(users)
-        .set(updates)
-        .where(eq(users.id, id))
-
-      return await this.findById(id)
-    } catch (err) {
-      console.error('updateUser error', err)
-      throw new Error('DB_ERROR')
+    if (email) {
+      // 检查新邮箱是否被别人占用
+      const conflict = await this.findByEmail(email)
+      if (conflict && conflict.id !== id) {
+        throw { code: 'DB_EMAIL_ALREADY_EXISTS' }
+      }
+      updates.email = email
     }
-  },
 
+    if (Object.keys(updates).length === 0) {
+      return await this.findById(id)
+    }
+
+    await db.update(users).set(updates).where(eq(users.id, id))
+    return await this.findById(id)
+  },
   async deleteUser(id: string) {
     try {
       await db.delete(users).where(eq(users.id, id))
