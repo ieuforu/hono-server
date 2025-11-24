@@ -1,19 +1,19 @@
 import { db } from '../db/index.js'
 import { users } from '../db/schema.js'
 import { eq } from 'drizzle-orm'
-import { v4 as uuidv4 } from 'uuid'
+import type { SafeUser, FullUser } from '../db/types.js'
 
-export interface SafeUser {
-  id: string
-  email: string
-  createdAt: Date
+const safeSelect = {
+  id: users.id,
+  email: users.email,
+  createdAt: users.createdAt,
+  updatedAt: users.updatedAt,
 }
 
 export const userRepo = {
   async findAll(): Promise<SafeUser[]> {
     try {
-      const result = await db.select().from(users)
-      return result.map(({ password, ...safeUser }) => safeUser)
+      return await db.select(safeSelect).from(users)
     } catch (err) {
       console.error('findAll error', err)
       throw new Error('DB_ERROR')
@@ -22,50 +22,84 @@ export const userRepo = {
 
   async findById(id: string): Promise<SafeUser | null> {
     try {
-      const result = await db.select().from(users).where(eq(users.id, id))
-      if (!result[0]) return null
-      const { password, ...safeUser } = result[0]
-      return safeUser
+      const result = await db
+        .select(safeSelect)
+        .from(users)
+        .where(eq(users.id, id))
+        .limit(1) // 优化查询
+      return result[0] ?? null
     } catch (err) {
       console.error('findById error', err)
       throw new Error('DB_ERROR')
     }
   },
 
-  async findByEmail(email: string) {
-    const result = await db.select().from(users).where(eq(users.email, email))
-    if (!result[0]) return null
-    const { password, ...safeUser } = result[0]
-    return safeUser
-  },
-  async findByEmailWithPassword(email: string) {
+  async findByEmail(email: string): Promise<SafeUser | null> {
     try {
-      const result = await db.select().from(users).where(eq(users.email, email))
-      return result[0] ?? null // 包含 password
+      const result = await db
+        .select(safeSelect)
+        .from(users)
+        .where(eq(users.email, email))
+        .limit(1)
+      return result[0] ?? null
+    } catch (err) {
+      console.error('findByEmail error', err)
+      throw new Error('DB_ERROR')
+    }
+  },
+
+  async findByEmailWithPassword(email: string): Promise<FullUser | null> {
+    try {
+      const result = await db
+        .select()
+        .from(users)
+        .where(eq(users.email, email))
+        .limit(1)
+      return result[0] ?? null
     } catch (err) {
       console.error('findByEmailWithPassword error', err)
       throw new Error('DB_ERROR')
     }
   },
-  async createUser(email: string, password: string) {
-    const id = uuidv4()
+
+  async createUser(
+    email: string,
+    password: string
+  ): Promise<{ id: string; email: string } | null> {
     try {
-      await db.insert(users).values({ id, email, password })
-      return { id, email }
-    } catch (err) {
-      console.error('createUser error', err)
-      throw new Error('DB_ERROR')
+      await db.insert(users).values({ email, password })
+      const newUser = await this.findByEmail(email)
+
+      if (newUser) {
+        return { id: newUser.id, email: newUser.email }
+      }
+
+      throw { code: 'DB_CREATE_USER_FAIL' }
+    } catch (err: any) {
+      if (err.code === 'DB_CREATE_USER_FAIL') {
+        throw { code: 'DB_CREATE_USER_FAIL' }
+      }
+
+      throw { code: 'DB_ERROR' }
     }
   },
 
-  async updateUser(id: string, email?: string, password?: string) {
-    const updates: Partial<{ email: string; password: string }> = {}
+  async updateUser(
+    id: string,
+    email?: string,
+    password?: string
+  ): Promise<SafeUser | null> {
+    const updates: Partial<FullUser> = {}
     if (email) updates.email = email
     if (password) updates.password = password
     if (Object.keys(updates).length === 0) return await this.findById(id)
 
     try {
-      await db.update(users).set(updates).where(eq(users.id, id))
+      const updateResult = await db
+        .update(users)
+        .set(updates)
+        .where(eq(users.id, id))
+
       return await this.findById(id)
     } catch (err) {
       console.error('updateUser error', err)

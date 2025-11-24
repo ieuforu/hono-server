@@ -7,7 +7,7 @@ import { users } from './db/schema.js'
 describe('userService 完整功能测试', () => {
   let testUserId: string
   const testEmail = 'test@example.com'
-  const testPassword = '123456'
+  const testPassword = 'SecureP@ssword123'
 
   beforeAll(async () => {
     // 清空 users 表
@@ -68,13 +68,16 @@ describe('userService 完整功能测试', () => {
     const newEmail = 'new@example.com'
     await userService.updateUser(testUserId, {
       email: newEmail,
-      password: 'newpass',
+      password: 'NewSecureP@ssword456',
     })
     const user = await userService.getUserById(testUserId)
     expect(user!.email).toBe(newEmail)
 
     // 用新密码登录验证
-    const loginResult = await userService.login(newEmail, 'newpass')
+    const loginResult = await userService.login(
+      newEmail,
+      'NewSecureP@ssword456'
+    )
     expect(loginResult).toHaveProperty('token')
   })
 

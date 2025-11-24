@@ -11,10 +11,13 @@ describe('userRepo 完整功能测试', () => {
   })
 
   it('createUser - 成功创建用户', async () => {
-    const user = await userRepo.createUser('test@example.com', '123456')
-    testUserId = user.id
+    const user = await userRepo.createUser(
+      'test@example.com',
+      'SecureP@ssword123'
+    )
+    testUserId = user!.id
     expect(user).toHaveProperty('id')
-    expect(user.email).toBe('test@example.com')
+    expect(user!.email).toBe('test@example.com')
   })
 
   it('findByEmail - 查找用户', async () => {
