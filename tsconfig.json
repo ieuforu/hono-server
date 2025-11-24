@@ -1,14 +1,21 @@
 {
   "compilerOptions": {
     "target": "ESNext",
-    "module": "NodeNext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ESNext"],
+
     "strict": true,
-    "verbatimModuleSyntax": true,
     "skipLibCheck": true,
-    "types": ["node", "bun-env"],
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+
     "jsx": "react-jsx",
     "jsxImportSource": "hono/jsx",
-    "outDir": "./dist"
+
+    "types": ["bun-types"]
   },
-  "exclude": ["node_modules"]
+  "include": ["src", "**/*.ts", "**/*.tsx"],
+  "exclude": ["node_modules", "dist"]
 }
